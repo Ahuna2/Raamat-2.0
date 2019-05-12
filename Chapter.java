@@ -15,6 +15,7 @@ public class Chapter {
     private ArrayList<Choice> followingChoices = new ArrayList<>();
     private ArrayList<Choice> previousChoices = new ArrayList<>();
 
+
     public Chapter(File destination, Raamat raamat) throws FileNotFoundException {
         //CONSTRUCTOR KUI AVATAKSE OLEMASOLEV PROJEKT
         this.destination = destination;
@@ -86,5 +87,15 @@ public class Chapter {
 
     public File getParentDestination() {
         return Parent.getDestination();
+    }
+
+    public Raamat getParent() {
+        return this.Parent;
+    }
+
+    @Override
+    public String toString() {
+        return this.getChapterID() + ", " + this.title + ": "
+                + this.getFollowingChoices();
     }
 }
