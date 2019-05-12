@@ -9,6 +9,8 @@ public class Choice {
 
     public Choice(String choiceID, String choiceText, Chapter parent) {
         //CONSTRUCTOR OLEMASOLEVA VALIKU SISSELUGEMISEKS
+        int beginningIndex = choiceID.indexOf("0");
+        choiceID = choiceID.substring(beginningIndex);
         this.choiceID = choiceID;
         this.choiceText = choiceText;
         this.Parent = parent;
@@ -53,6 +55,11 @@ public class Choice {
 
     public String getChoiceID() {
         return this.choiceID;
+    }
+
+    @Override
+    public String toString() {
+        return this.choiceID + ": " + this.getChoiceText();
     }
 }
 
