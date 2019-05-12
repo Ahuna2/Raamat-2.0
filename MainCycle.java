@@ -1,6 +1,4 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -99,12 +97,13 @@ public class MainCycle {
         }
     }
 
-    private static Raamat loadProject(File projectFolder) throws FileNotFoundException {
+    static Raamat loadProject(File projectFolder) throws FileNotFoundException, UnsupportedEncodingException {
         //Olemasoleva projekti klassidena sisselugemiseks
         Raamat openRaamat = new Raamat(projectFolder);                                                                  //loob raamatu
 
         File chapterFolder = new File(projectFolder.getPath() + System.getProperty("file.separator") +         //lisab raamatule peatükid
                 "Chapters");
+
         for (File chapterFile : chapterFolder.listFiles()) {
             Chapter chapter = new Chapter(chapterFile, openRaamat);
             loadChoices(chapter, projectFolder);                                                                        //lisab peatükkidele valikud
@@ -112,21 +111,29 @@ public class MainCycle {
         return openRaamat;
     }
 
-    private static void loadChoices(Chapter chapter, File projectFolder) throws FileNotFoundException {
+    private static void loadChoices(Chapter chapter, File projectFolder) throws FileNotFoundException, UnsupportedEncodingException {
         //LOOB IGALE VALIKULE KLASSI NING LINGIB NEED PEATÜKKDIEGA
         File allChoicesFile = new File(projectFolder.getPath() + System.getProperty("file.separator") +
                 "All Choices.txt");
-        Scanner scanner = new Scanner(allChoicesFile);
-        while (scanner.hasNextLine()) {
-            String choiceRaw = scanner.nextLine();
-            String[] choice = choiceRaw.split(";");
-            if (choice[0].equals(chapter.getChapterID())) {
-                chapter.addFollowingChoice(new Choice(choice[0], choice[2], chapter));
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader
+                    (new FileInputStream(allChoicesFile), "UTF-8"));
+
+            String choiceRaw;
+            while ((choiceRaw = in.readLine()) != null) {
+
+                int beginningIndex = choiceRaw.indexOf("0");
+                choiceRaw = choiceRaw.substring(beginningIndex);
+                String[] choice = choiceRaw.split(";");
+                if (choice[1].equals(chapter.getChapterID())) {
+                    new Choice(choice[0], choice[2], chapter);
+                }
             }
-            if (choice[1].equals(chapter.getChapterID())) {
-                chapter.addPreviousChoice((new Choice(choice[0], choice[2], chapter)));
-            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 
     private static Chapter handleChooseChapterDecision(Raamat raamat) throws IOException {
@@ -258,7 +265,7 @@ public class MainCycle {
                     if (!choiceOptions.contains(el2)) {
                         choiceOptions.add(el2);
                         System.out.println((i+1) + " - " + el2.getChoiceID() + ": " + el2.getChoiceText());
-                  //      System.out.println(el.getChapterID() + " | " + el.getTitle());
+                        //      System.out.println(el.getChapterID() + " | " + el.getTitle());
                         i++;
                     }
                 }
