@@ -90,5 +90,16 @@ public class Raamat {
         return this.allChapters;
     }
 
+    public String getTitle() {
+        return this.title;
+    }
 
+    @Override
+    public String toString() {
+        String valjund = this.title + "\n";
+        for (Chapter el : this.getAllChapters()) {
+            valjund+= el + "\n";
+        }
+        return valjund;
+    }
 }
