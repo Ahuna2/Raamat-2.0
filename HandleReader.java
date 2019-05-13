@@ -1,7 +1,5 @@
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.*;
@@ -12,11 +10,12 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 public class HandleReader {
 
     public static void handle(Raamat raamat, String openChapterId, double x, double y) throws IOException {
+        //PEATÜKK EKRAANIL, LÕPPU KERIDES (VÕI KUI KERIDA POLE VAJADUST) ILMUVAD VALIKUD.
 
         Chapter openChapter = findChapter(raamat, openChapterId);
 
@@ -24,8 +23,10 @@ public class HandleReader {
         window.setTitle(raamat.getTitle());
         VBox layout = new VBox();
 
-        String chapterText = loadChapter(raamat, openChapter);
+        //Peatüki tekst toore sõnena.
+        String chapterText = loadChapter(openChapter);
 
+        //Peatüki teksti desain.
         TextArea chapter = new TextArea();
         chapter.setWrapText(true);
         chapter.setEditable(false);
@@ -42,29 +43,33 @@ public class HandleReader {
         window.setScene(scene);
         window.show();
 
+        //Kui valikud on juba ilmunud, väldib uue tekkimist.
         boolean[] alreadyShown = new boolean[1];
-        alreadyShown[0] = false;
 
+        //Kui kerida pole võimalik, näita valikuid.
         ScrollBar tvScrollBar = (ScrollBar) chapter.lookup(".scroll-bar:vertical");
-        if (tvScrollBar.getWidth() == 20.0 && !alreadyShown[0]) {
-            choice(openChapter, window, layout);
+        if (tvScrollBar.getWidth() == 20.0) {
+            ChoiceBar.choice(openChapter, window, layout);
             alreadyShown[0] = true;
         }
+        //Jälgib, kas kerimine on jõudnud lõppu.
         tvScrollBar.valueProperty().addListener((observable, oldValue, newValue) -> {
             if ((Double) newValue == 1.00 && !alreadyShown[0]) {
-                choice(openChapter, window, layout);
+                ChoiceBar.choice(openChapter, window, layout);
                 alreadyShown[0] = true;
             }
         });
     }
 
-    private static String loadChapter(Raamat raamat, Chapter chapter) throws IOException{
+    private static String loadChapter(Chapter chapter) throws IOException{
+    //LEIAB UUE PEATÜKI TEKSTI, MIDA KUVADA
 
-        int chapterIndex = raamat.getAllChapters().indexOf(chapter);
+        int chapterIndex = chapter.getParent().getAllChapters().indexOf(chapter);
 
+        //Peatüki sisu pika sõnena.
         String chapterText = null;
         try (BufferedReader in = new BufferedReader(new InputStreamReader
-                (new FileInputStream(raamat.getAllChapters().get(chapterIndex).getDestination()), "UTF-8"))){
+                (new FileInputStream(chapter.getParent().getAllChapters().get(chapterIndex).getDestination()), StandardCharsets.UTF_8))){
             in.readLine();
             in.readLine();
             String line;
@@ -72,6 +77,7 @@ public class HandleReader {
                 chapterText += "/&/"+ line + " ";
             }
         }
+        //Peatüki sisu puhastamine.
         chapterText = chapterText.replace("/&/", "\n    ").replace("  ", " ");
         if (chapterText.startsWith("null")) {
             chapterText = chapterText.substring(4);
@@ -83,6 +89,9 @@ public class HandleReader {
     }
 
     private static Chapter findChapter(Raamat raamat, String chapterId) {
+        //LEIAB VALIKU ID JÄRGI UUE PEATÜKI
+        //tekst 1[0] -> (valik 3[0.3] -> tekst 3[0.3]) -> (valik n[0.3.n] -> tekst n[0.3.n]).
+
         for (Chapter el : raamat.getAllChapters()) {
             String choiceId = el.getChapterID();
             int beginningIndex = el.getChapterID().indexOf("0");
@@ -93,29 +102,5 @@ public class HandleReader {
             }
         }
         return null;
-    }
-
-    private static void choice(Chapter chapter, Stage window, VBox layout) {
-
-        List<Choice> choices = chapter.getFollowingChoices();
-        HBox choice = new HBox(30);
-
-        for (Choice el : choices) {
-            Button button = new Button(el.getChoiceText());
-            button.setOnAction(e -> {
-                try {
-                    handle(chapter.getParent(), el.getChoiceID(), window.getWidth(), window.getHeight());
-                    window.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            });
-            button.setAlignment(Pos.CENTER);
-            choice.getChildren().add(button);
-        }
-
-        choice.setPadding(new Insets(5,5,5,5));
-        choice.setAlignment(Pos.CENTER);
-        layout.getChildren().add(choice);
     }
 }
