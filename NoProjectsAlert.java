@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 public class NoProjectsAlert {
 
     public static void display() {
+        //ALERT, MIS TEAVITAB, ET PROJEKE EI LEIDU NING LÕPETAB PROGRAMMI TÖÖ
         Stage window = new Stage();
 
         window.initModality(Modality.APPLICATION_MODAL);
